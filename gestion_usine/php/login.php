@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'connexion.php'; // This will define $pdo
+require_once 'connexion.php'; // This will define $pdo
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $cin = $_POST['cin'];
@@ -16,8 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: admin_dashboard.php");
         exit;
     } else {
-        echo "<script>alert('Invalid CIN or password'); window.location.href='login.php';</script>";
+        echo "<script>alert('Invalid CIN or password'); window.location.href='../index.html';</script>";
     }
 }
 ?>
-

@@ -2,25 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Admin</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f4;
+      color: #333;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-box {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .form-control {
+      background-color: #ffffff;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+    .form-control:focus {
+      background-color: #ffffff;
+      color: #333;
+      border-color: #1b98e0;
+      box-shadow: none;
+    }
+    .btn-primary {
+      background-color: #1b98e0;
+      border: none;
+    }
+    .btn-primary:hover {
+      background-color: #166ba8;
+    }
+    .error {
+      color: #ff6b6b;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>Admin Login</h2>
-    <form action="login.php" method="POST" id="loginForm">
-      <div class="user-box">
-        <input type="text" name="cin" required>
-        <label>CIN</label>
+    <h2>Login</h2>
+    <form action="php/login.php" method="POST" id="loginForm">
+      <div class="mb-3">
+        <label for="cin" class="form-label">CIN</label>
+        <input type="text" class="form-control" id="cin" name="cin" required>
       </div>
-      <div class="user-box">
-        <input type="password" name="password" required>
-        <label>Password</label>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
       </div>
       <span id="error" class="error"></span>
-      <button type="submit">Login</button>
+      <button type="submit" class="btn btn-primary w-100">Login</button>
     </form>
   </div>
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

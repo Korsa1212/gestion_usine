@@ -1,5 +1,5 @@
 <?php
-require_once 'connexion.php'; // This defines $conn
+require_once __DIR__ . '/connexion.php'; // This defines $pdo
 
 $cin = "Y512417";
 $plainPassword = "12345678";
@@ -9,7 +9,7 @@ $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
 
 // Insert into admin table
 try {
-    $stmt = $conn->prepare("INSERT INTO admin (cin, password) VALUES (:cin, :password)");
+    $stmt = $pdo->prepare("INSERT INTO admin (cin, password) VALUES (:cin, :password)");
     $stmt->bindParam(':cin', $cin);
     $stmt->bindParam(':password', $hashedPassword);
     $stmt->execute();

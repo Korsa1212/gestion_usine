@@ -1,0 +1,12 @@
+RewriteEngine On
+
+# Redirect clean URLs to php directory
+RewriteRule ^dashboard$ php/admin_dashboard.php [L]
+RewriteRule ^login$ php/login.php [L]
+RewriteRule ^logout$ php/logout.php [L]
+RewriteRule ^register$ php/register_admin.php [L]
+RewriteRule ^operators$ php/operateur.php [L]
+RewriteRule ^absences$ php/absence.php [L]
+
+# Optionally, force index.html as homepage
+DirectoryIndex index.html

@@ -1,0 +1,25 @@
+/* Base Styles */
+:root {
+    --primary: #6C63FF;
+    --secondary: #F5F7FA;
+    --text-primary: #2D3748;
+    --text-secondary: #718096;
+    --transition: all 0.3s ease;
+    --navbar-height: 70px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--secondary);
+    color: var(--text-primary);
+    transition: var(--transition);
+    position: relative;
+    min-height: 100vh;
+    padding-top: var(--navbar-height);
+    overflow-x: hidden;
+}
+
+.main-container {
+    min-height: calc(100vh - var(--navbar-height));
+    padding: 0;
+}
