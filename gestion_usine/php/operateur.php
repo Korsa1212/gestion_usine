@@ -16,32 +16,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // After processing, redirect to avoid form resubmission
     $redirect = false;
     $id_op = trim($_POST['id_op'] ?? '');
-    $nom_complet = trim($_POST['nom_complet'] ?? '');
-    $telephone = trim($_POST['telephone'] ?? '');
-    $CIN = trim($_POST['CIN'] ?? '');
-    $shift_travail = trim($_POST['shift_travail'] ?? '');
-    $heure_debut = trim($_POST['heure_debut'] ?? '');
-    $heure_fin = trim($_POST['heure_fin'] ?? '');
-    $repos_date = trim($_POST['repos_date'] ?? '');
-    $presence = isset($_POST['presence']) ? 1 : 0;
+$nom_complet = trim($_POST['nom_complet'] ?? '');
+$CIN = trim($_POST['CIN'] ?? '');
+$Telephone = trim($_POST['Telephone'] ?? '');
+$actif = isset($_POST['actif']) ? 1 : 0;
     $edit_mode = isset($_POST['edit_mode']) && $_POST['edit_mode'] === '1';
     $old_id_op = $_POST['old_id_op'] ?? '';
 
     // Validation
-    if ($id_op === '' || $nom_complet === '' || $telephone === '' || $CIN === '' || $shift_travail === '' || $heure_debut === '' || $heure_fin === '' || $repos_date === '') {
-        $error = 'Tous les champs sont obligatoires.';
+    if ($id_op === '' || $nom_complet === '' || $CIN === '' || $Telephone === '') {
+    $error = 'Tous les champs sont obligatoires.';
     } else {
         try {
             if ($edit_mode) {
-                // UPDATE
-                $stmt = $pdo->prepare("UPDATE OPERATEUR SET id_op=?, nom_complet=?, telephone=?, CIN=?, shift_travail=?, heure_debut=?, heure_fin=?, repos_date=?, presence=? WHERE id_op=?");
-                $stmt->execute([$id_op, $nom_complet, $telephone, $CIN, $shift_travail, $heure_debut, $heure_fin, $repos_date, $presence, $old_id_op]);
-                $success = 'Opérateur modifié avec succès!';
-            } else {
-                // INSERT
-                $stmt = $pdo->prepare("INSERT INTO OPERATEUR (id_op, nom_complet, telephone, CIN, shift_travail, heure_debut, heure_fin, repos_date, presence) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$id_op, $nom_complet, $telephone, $CIN, $shift_travail, $heure_debut, $heure_fin, $repos_date, $presence]);
-                $success = 'Nouvel opérateur ajouté!';
+    // UPDATE
+    $stmt = $pdo->prepare("UPDATE operateures SET id_op=?, nom_complet=?, CIN=?, Telephone=?, actif=? WHERE id_op=?");
+    $stmt->execute([$id_op, $nom_complet, $CIN, $Telephone, $actif, $old_id_op]);
+    $success = 'Opérateur modifié avec succès!';
+} else {
+    // INSERT
+    $stmt = $pdo->prepare("INSERT INTO operateures (id_op, nom_complet, CIN, Telephone, actif) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$id_op, $nom_complet, $CIN, $Telephone, $actif]);
+    $success = 'Nouvel opérateur ajouté!';
             }
             $redirect = true;
 
@@ -67,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['delete'])) {
     $id_op = $_GET['delete'];
     try {
-        $stmt = $pdo->prepare("DELETE FROM OPERATEUR WHERE id_op = ?");
+        $stmt = $pdo->prepare("DELETE FROM operateures WHERE id_op = ?");
         $stmt->execute([$id_op]);
         $success = 'Opérateur supprimé!';
     } catch (PDOException $e) {
@@ -103,13 +99,13 @@ $edit_data = null;
 $show_form = false;
 if (isset($_GET['edit'])) {
     $id_op = $_GET['edit'];
-    $stmt = $pdo->prepare("SELECT * FROM OPERATEUR WHERE id_op = ?");
+    $stmt = $pdo->prepare("SELECT * FROM operateures WHERE id_op = ?");
     $stmt->execute([$id_op]);
     $edit_data = $stmt->fetch(PDO::FETCH_ASSOC);
     $show_form = true;
 }
 
-$result = $pdo->query("SELECT * FROM OPERATEUR");
+$result = $pdo->query("SELECT * FROM operateures");
 
 ?>
 <h1 class="mb-4">Gestion des Opérateurs</h1>
@@ -137,7 +133,7 @@ $result = $pdo->query("SELECT * FROM OPERATEUR");
             <input type="hidden" name="edit_mode" value="<?= $edit_data ? '1' : '0' ?>">
             <input type="hidden" name="old_id_op" value="<?= $edit_data['id_op'] ?? '' ?>">
             <div class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">ID Opérateur</label>
                     <input type="text" class="form-control" name="id_op" value="<?= htmlspecialchars($edit_data['id_op'] ?? '') ?>" required>
                 </div>
@@ -146,32 +142,18 @@ $result = $pdo->query("SELECT * FROM OPERATEUR");
                     <input type="text" class="form-control" name="nom_complet" value="<?= htmlspecialchars($edit_data['nom_complet'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Téléphone</label>
-                    <input type="text" class="form-control" name="telephone" value="<?= htmlspecialchars($edit_data['telephone'] ?? '') ?>" required>
-                </div>
-                <div class="col-md-3">
                     <label class="form-label">CIN</label>
                     <input type="text" class="form-control" name="CIN" value="<?= htmlspecialchars($edit_data['CIN'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Shift</label>
-                    <input type="text" class="form-control" name="shift_travail" value="<?= htmlspecialchars($edit_data['shift_travail'] ?? '') ?>" required>
+                    <label class="form-label">Téléphone</label>
+                    <input type="text" class="form-control" name="Telephone" value="<?= htmlspecialchars($edit_data['Telephone'] ?? '') ?>" required>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Heure Début</label>
-                    <input type="time" class="form-control" name="heure_debut" value="<?= htmlspecialchars($edit_data['heure_debut'] ?? '') ?>" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Heure Fin</label>
-                    <input type="time" class="form-control" name="heure_fin" value="<?= htmlspecialchars($edit_data['heure_fin'] ?? '') ?>" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Date Repos</label>
-                    <input type="date" class="form-control" name="repos_date" value="<?= htmlspecialchars($edit_data['repos_date'] ?? '') ?>" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Présence</label><br>
-                    <input type="checkbox" name="presence" value="1" <?= isset($edit_data['presence']) ? ($edit_data['presence'] ? 'checked' : '') : 'checked' ?>> Présent
+                <div class="col-md-1 d-flex align-items-center">
+                    <div class="form-check mt-4">
+                        <input class="form-check-input" type="checkbox" name="actif" value="1" id="actifCheck" <?= isset($edit_data['actif']) ? ($edit_data['actif'] ? 'checked' : '') : 'checked' ?>>
+                        <label class="form-check-label" for="actifCheck">Actif</label>
+                    </div>
                 </div>
             </div>
             <div class="mt-3">
@@ -189,13 +171,9 @@ $result = $pdo->query("SELECT * FROM OPERATEUR");
         <tr>
             <th>ID</th>
             <th>Nom Complet</th>
-            <th>Téléphone</th>
             <th>CIN</th>
-            <th>Shift</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th>Repos</th>
-            <th>Présence</th>
+            <th>Téléphone</th>
+            <th>Actif</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -205,16 +183,12 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
     echo "<tr>
         <td>".htmlspecialchars($row['id_op'])."</td>
         <td>".htmlspecialchars($row['nom_complet'])."</td>
-        <td>".htmlspecialchars($row['telephone'])."</td>
         <td>".htmlspecialchars($row['CIN'])."</td>
-        <td>".htmlspecialchars($row['shift_travail'])."</td>
-        <td>".htmlspecialchars($row['heure_debut'])."</td>
-        <td>".htmlspecialchars($row['heure_fin'])."</td>
-        <td>".htmlspecialchars($row['repos_date'])."</td>
-        <td>".($row['presence'] ? 'Présent' : 'Absent')."</td>
+        <td>".htmlspecialchars($row['Telephone'])."</td>
+        <td>".($row['actif'] ? 'Oui' : 'Non')."</td>
         <td>
             <a href='?section=operators&edit=".urlencode($row['id_op'])."' class='btn btn-sm btn-warning'>Modifier</a>
-            <a href='?section=operators&delete=".urlencode($row['id_op'])."' class='btn btn-sm btn-danger' onclick=\"return confirm('Supprimer cet opérateur ?')\">Supprimer</a>
+            <a href='?section=operators&delete=".urlencode($row['id_op'])."' class='btn btn-sm btn-danger' onclick=\"return confirm('Supprimer cet opérateur ?')\" >Supprimer</a>
         </td>
     </tr>";
 }

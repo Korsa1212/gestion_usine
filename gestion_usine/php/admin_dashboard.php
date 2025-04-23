@@ -67,27 +67,27 @@ if (!isset($_SESSION['admin'])) {
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-section="machines">
+                        <a class="nav-link" href="admin_dashboard.php?section=machines">
                             <i class="fas fa-cogs"></i>Machines
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-section="articles">
+                        <a class="nav-link" href="admin_dashboard.php?section=articles">
                             <i class="fas fa-box"></i>Articles
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-section="fabrication">
+                        <a class="nav-link" href="admin_dashboard.php?section=fabrication">
                             <i class="fas fa-industry"></i>Fabrication
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-section="planning">
+                        <a class="nav-link" href="admin_dashboard.php?section=planning">
                             <i class="fas fa-calendar-alt"></i>Planning
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" data-section="historique">
+                        <a class="nav-link" href="admin_dashboard.php?section=historique">
                             <i class="fas fa-history"></i>Historique
                         </a>
                     </li>
@@ -102,6 +102,20 @@ if ($section === 'operators') {
     include __DIR__ . '/operateur.php';
 } else if ($section === 'absences') {
     include __DIR__ . '/absence.php';
+} else if ($section === 'articles') {
+    include __DIR__ . '/article.php';
+} else if ($section === 'machines') {
+    include __DIR__ . '/machine.php';
+} else if ($section === 'fabrication') {
+    include __DIR__ . '/fabrication.php';
+} else if ($section === 'planning') {
+    include __DIR__ . '/planning.php';
+} else if ($section === 'historique') {
+    // Forward filter parameters if present
+    $_GET['cin'] = $_GET['cin'] ?? '';
+    $_GET['nom_op'] = $_GET['nom_op'] ?? '';
+    $_GET['date_action'] = $_GET['date_action'] ?? '';
+    include __DIR__ . '/historique.php';
 } else {
 ?>
     <div class="fade-in">
@@ -113,7 +127,7 @@ if ($section === 'operators') {
                         <h5 class="card-title text-primary">Opérateurs</h5>
                         <?php
 require_once __DIR__ . '/connexion.php';
-$count_op = $pdo->query('SELECT COUNT(*) FROM OPERATEUR')->fetchColumn();
+$count_op = $pdo->query('SELECT COUNT(*) FROM operateures')->fetchColumn();
 ?>
 <p class="card-text display-3">
     <span style="font-size:2.8 rem;font-weight:700; color:#6C63FF;"><?php echo $count_op; ?></span><br>
