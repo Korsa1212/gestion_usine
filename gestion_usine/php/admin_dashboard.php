@@ -31,9 +31,23 @@ if (!isset($_SESSION['admin'])) {
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-lg fixed-top py-3">
         <div class="container-fluid px-4">
-            <a class="navbar-brand" href="#">
-                <img src="../logo.png" alt="Factory Logo" height="40" class="fade-in">
-            </a>
+            <a class="navbar-brand d-flex align-items-center" href="#">
+    <img src="../asesst/logo.jpg" alt="Logo" height="50" class="fade-in me-2">
+    <span class="orgashift-logo ms-2"><span class="orga">MPS</span></span>
+</a>
+<style>
+    .orgashift-logo {
+        font-size: 1.2rem;
+        font-weight: bold;
+        letter-spacing: 1px;
+        line-height: 1;
+        display: inline-block;
+    }
+    .orgashift-logo .orga {
+        color:rgb(69, 170, 190); /* dark purple */
+    }
+    
+</style>
             <button class="navbar-toggler" type="button" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
@@ -119,25 +133,62 @@ if ($section === 'operators') {
 } else {
 ?>
     <div class="fade-in">
-        <h1 class="mb-4">Dashboard Overview</h1>
-        <div class="row g-4">
-            <div class="col-md-4 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
+        <h1 class="mb-4">Dashboard</h1>
+        <div class="row g-4 w-100 m-0">
+            <div class="col-md-6 col-12">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
                         <h5 class="card-title text-primary">Opérateurs</h5>
                         <?php
-require_once __DIR__ . '/connexion.php';
-$count_op = $pdo->query('SELECT COUNT(*) FROM operateures')->fetchColumn();
-?>
-<p class="card-text display-3">
-    <span style="font-size:2.8 rem;font-weight:700; color:#6C63FF;"><?php echo $count_op; ?></span><br>
-    
-</p>
+                        require_once __DIR__ . '/connexion.php';
+                        $count_op = $pdo->query('SELECT COUNT(*) FROM operateures')->fetchColumn();
+                        ?>
+                        <p class="card-text display-3 mb-0">
+                            <span style="font-size:3rem;font-weight:700; color:#6C63FF;">
+                                <?php echo $count_op; ?>
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>
-            <!-- Add more dashboard cards here as needed -->
+            <div class="col-md-6 col-12">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                        <h5 class="card-title text-success">Machines en Fonction</h5>
+                        <?php
+                        $count_machines_fonction = $pdo->query('SELECT COUNT(*) FROM machine WHERE en_fonction = 1')->fetchColumn();
+                        ?>
+                        <p class="card-text display-3 mb-0">
+                            <span style="font-size:3rem;font-weight:700; color:#28a745;">
+                                <?php echo $count_machines_fonction; ?>
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
+        <!-- Charts Row: both charts side by side on desktop, stacked on mobile -->
+        <div class="row mb-4">
+            <div class="col-md-6 col-12">
+                <div class="card mt-2">
+                    <div class="card-body">
+                        <h5 class="card-title">Nombre d'opérateurs inscrits par date</h5>
+                        <canvas id="operatorsOverTimeChart" height="200"></canvas>
+                        <div id="chartjs-operator-error" class="text-danger mt-2" style="display:none;">Erreur: Chart.js n'est pas chargé.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="card mt-2">
+                    <div class="card-body">
+                        <h5 class="card-title">Utilisation des machines en fabrication</h5>
+                        <canvas id="machineUsageChart" height="200"></canvas>
+                        <div id="chartjs-machine-error" class="text-danger mt-2" style="display:none;">Erreur: Chart.js n'est pas chargé.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- If you need to install Chart.js locally, run: npm install chart.js -->
     </div>
 <?php
 }
@@ -155,6 +206,61 @@ $count_op = $pdo->query('SELECT COUNT(*) FROM operateures')->fetchColumn();
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Dashboard Charts Script -->
+    <!-- <script src="../js/dashboard_charts.js"></script> -->
+    <script>
+    // Show error if Chart.js is not loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof Chart === 'undefined') {
+            document.getElementById('chartjs-operator-error').style.display = 'block';
+            document.getElementById('chartjs-machine-error').style.display = 'block';
+            return;
+        }
+        // Chart 1: Opérateurs inscrits par date
+        fetch('dashboard_data.php?type=operators_over_time')
+            .then(res => res.json())
+            .then(data => {
+                if (window.Chart && data.labels && data.data) {
+                    new Chart(document.getElementById('operatorsOverTimeChart').getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: "Opérateurs inscrits",
+                                data: data.data,
+                                borderColor: "#6C63FF",
+                                backgroundColor: "rgba(108,99,255,0.1)",
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        }
+                    });
+                }
+            });
+
+        // Chart 2: Utilisation des machines
+        fetch('dashboard_data.php?type=machine_usage')
+            .then(res => res.json())
+            .then(data => {
+                if (window.Chart && data.labels && data.data) {
+                    new Chart(document.getElementById('machineUsageChart').getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: "Utilisation",
+                                data: data.data,
+                                backgroundColor: "#28a745"
+                            }]
+                        }
+                    });
+                }
+            });
+    });
+    </script>
+    <!-- If you need to install Chart.js locally, run: npm install chart.js -->
     <!-- Lovable Script (required for new features) -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <!-- Custom JS -->

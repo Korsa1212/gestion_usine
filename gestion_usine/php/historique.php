@@ -19,21 +19,24 @@ $cin = array_key_exists('cin', $_GET) ? trim($_GET['cin']) : null;
 $nom_op = array_key_exists('nom_op', $_GET) ? trim($_GET['nom_op']) : null;
 $date_action = array_key_exists('date_action', $_GET) ? trim($_GET['date_action']) : null;
 
-$query = "SELECT * FROM historique_planing WHERE 1=1";
+$query = "SELECT h.id_hist_info, h.shift_travaille, h.id_op, h.date_action, h.id_ordre, h.nom_op, h.cin, h.heure_debut, h.heure_fin, f.id_article
+FROM historique_planing h
+LEFT JOIN fabrication f ON h.id_ordre = f.id_ordre
+WHERE 1=1";
 $params = [];
 if ($cin !== '') {
-    $query .= " AND cin LIKE :cin";
+    $query .= " AND h.cin LIKE :cin";
     $params[':cin'] = "%$cin%";
 }
 if ($nom_op !== '') {
-    $query .= " AND nom_op LIKE :nom_op";
+    $query .= " AND h.nom_op LIKE :nom_op";
     $params[':nom_op'] = "%$nom_op%";
 }
 if ($date_action !== '') {
-    $query .= " AND date_action = :date_action";
+    $query .= " AND h.date_action = :date_action";
     $params[':date_action'] = $date_action;
 }
-$query .= " ORDER BY date_action DESC, id_hist_info DESC";
+$query .= " ORDER BY h.date_action DESC, h.id_hist_info DESC";
 $stmt = $pdo->prepare($query);
 $stmt->execute($params);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -87,32 +90,36 @@ $form_action = 'historique.php';
         <table class="table table-bordered table-striped align-middle text-center">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Shift</th>
-                    <th>Opérateur</th>
-                    <th>Machine (ID Ordre)</th>
-                    <th>Date</th>
-                    <th>CIN</th>
-                    <th>Heure Début</th>
-                    <th>Heure Fin</th>
-                    <th>Actions</th>
+                    <th>ID Hist.</th>
+<th>Shift</th>
+<th>ID Op</th>
+<th>Date</th>
+<th>ID Ordre</th>
+<th>Nom Opérateur</th>
+<th>CIN</th>
+<th>Heure Début</th>
+<th>Heure Fin</th>
+<th>ID Article</th>
+<th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($rows as $row): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($row['id_hist_info']); ?></td>
-                        <td><?php echo htmlspecialchars($row['shift_travaille']); ?></td>
-                        <td><?php echo htmlspecialchars($row['nom_op']); ?></td>
-                        <td><?php echo htmlspecialchars($row['id_ordre']); ?></td>
-                        <td><?php echo htmlspecialchars($row['date_action']); ?></td>
-                        <td><?php echo htmlspecialchars($row['cin']); ?></td>
-                        <td><?php echo htmlspecialchars($row['heure_debut']); ?></td>
-                        <td><?php echo htmlspecialchars($row['heure_fin']); ?></td>
-                        <td>
-                            <a href="edit_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-warning">Éditer</a>
-                            <a href="delete_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette entrée ?');">Supprimer</a>
-                        </td>
+<td><?php echo htmlspecialchars($row['shift_travaille']); ?></td>
+<td><?php echo htmlspecialchars($row['id_op']); ?></td>
+<td><?php echo htmlspecialchars($row['date_action']); ?></td>
+<td><?php echo htmlspecialchars($row['id_ordre']); ?></td>
+<td><?php echo htmlspecialchars($row['nom_op']); ?></td>
+<td><?php echo htmlspecialchars($row['cin']); ?></td>
+<td><?php echo htmlspecialchars($row['heure_debut']); ?></td>
+<td><?php echo htmlspecialchars($row['heure_fin']); ?></td>
+<td><?php echo htmlspecialchars($row['id_article']); ?></td>
+<td>
+    <a href="edit_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-warning">Éditer</a>
+    <a href="delete_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette entrée ?');">Supprimer</a>
+</td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
