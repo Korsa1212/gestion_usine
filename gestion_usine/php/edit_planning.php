@@ -68,8 +68,12 @@ foreach ($new_assignments as $key => $new_op_id) {
     $old_op_id = $original_posts[$key];
     if ($old_op_id !== $new_op_id) {
         // Mettre à jour l'opérateur affecté à ce poste
-        $stmt = $pdo->prepare("UPDATE historique_planing SET id_op = ? WHERE date_action = ? AND id_ordre = ? AND shift_travaille = ?");
-        $stmt->execute([$new_op_id, $date_action, $id_ordre, $shift_travaille]);
+        // Also update periode_du and periode_au to keep them consistent
+        $original_period = $pdo->prepare("SELECT periode_du, periode_au FROM historique_planing WHERE date_action = ? AND id_ordre = ? AND shift_travaille = ?");
+        $original_period->execute([$date_action, $id_ordre, $shift_travaille]);
+        $period = $original_period->fetch(PDO::FETCH_ASSOC);
+        $stmt = $pdo->prepare("UPDATE historique_planing SET id_op = ?, periode_du = ?, periode_au = ? WHERE date_action = ? AND id_ordre = ? AND shift_travaille = ?");
+        $stmt->execute([$new_op_id, $period['periode_du'], $period['periode_au'], $date_action, $id_ordre, $shift_travaille]);
     }
 }
 echo '✅ Planning modifié avec succès.';

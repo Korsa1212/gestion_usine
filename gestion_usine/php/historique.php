@@ -19,7 +19,7 @@ $cin = array_key_exists('cin', $_GET) ? trim($_GET['cin']) : null;
 $nom_op = array_key_exists('nom_op', $_GET) ? trim($_GET['nom_op']) : null;
 $date_action = array_key_exists('date_action', $_GET) ? trim($_GET['date_action']) : null;
 
-$query = "SELECT h.id_hist_info, h.shift_travaille, h.id_op, h.date_action, h.id_ordre, h.nom_op, h.cin, h.heure_debut, h.heure_fin, f.id_article
+$query = "SELECT h.id_hist_info, h.shift_travaille, h.id_op, h.date_action, h.id_ordre, h.nom_op, h.cin, h.periode_du, h.periode_au, f.id_article
 FROM historique_planing h
 LEFT JOIN fabrication f ON h.id_ordre = f.id_ordre
 WHERE 1=1";
@@ -53,8 +53,18 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h2 class="mb-3">Historique des Plannings</h2>
     <?php if ($successMessage) echo $successMessage; ?>
     <?php
-// Determine form action: always point to historique.php
-$form_action = 'historique.php';
+    // Affichage de la période de planification (semaines)
+    $period_start = isset($_SESSION['planning_start']) ? $_SESSION['planning_start'] : null;
+    $period_end = isset($_SESSION['planning_end']) ? $_SESSION['planning_end'] : null;
+    if ($period_start && $period_end) {
+        $week_start = date('W', strtotime($period_start));
+        $week_end = date('W', strtotime($period_end));
+        $year_start = date('Y', strtotime($period_start));
+        $year_end = date('Y', strtotime($period_end));
+        echo "<div class='alert alert-info text-center mb-3'>Période historique utilisée : semaine <b>$week_start</b> ($period_start) au <b>$week_end</b> ($period_end)</div>";
+    }
+    // Determine form action: always point to historique.php
+    $form_action = 'historique.php';
 ?>
 <!-- Filter Form: not nested in any other form -->
 <form method="get" action="<?php echo htmlspecialchars($form_action); ?>" class="row g-3 mb-3">
@@ -97,8 +107,8 @@ $form_action = 'historique.php';
 <th>ID Ordre</th>
 <th>Nom Opérateur</th>
 <th>CIN</th>
-<th>Heure Début</th>
-<th>Heure Fin</th>
+<th>Période du</th>
+<th>Période au</th>
 <th>ID Article</th>
 <th>Actions</th>
                 </tr>
@@ -113,8 +123,8 @@ $form_action = 'historique.php';
 <td><?php echo htmlspecialchars($row['id_ordre']); ?></td>
 <td><?php echo htmlspecialchars($row['nom_op']); ?></td>
 <td><?php echo htmlspecialchars($row['cin']); ?></td>
-<td><?php echo htmlspecialchars($row['heure_debut']); ?></td>
-<td><?php echo htmlspecialchars($row['heure_fin']); ?></td>
+<td><?php echo htmlspecialchars($row['periode_du']); ?></td>
+<td><?php echo htmlspecialchars($row['periode_au']); ?></td>
 <td><?php echo htmlspecialchars($row['id_article']); ?></td>
 <td>
     <a href="edit_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-warning">Éditer</a>

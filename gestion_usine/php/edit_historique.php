@@ -10,12 +10,12 @@ if ($id <= 0) {
 
 // Handle update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fields = ['shift_travaille','id_op','date_action','id_ordre','id_article','nom_op','cin','heure_debut','heure_fin'];
+    $fields = ['shift_travaille','id_op','date_action','id_ordre','id_article','nom_op','cin','periode_du','periode_au'];
     $params = [];
     foreach ($fields as $f) {
         $params[$f] = $_POST[$f] ?? '';
     }
-    $stmt = $pdo->prepare("UPDATE historique_planing SET shift_travaille=?, id_op=?, date_action=?, id_ordre=?, id_article=?, nom_op=?, action=?, cin=?, heure_debut=?, heure_fin=? WHERE id_hist_info=?");
+    $stmt = $pdo->prepare("UPDATE historique_planing SET shift_travaille=?, id_op=?, date_action=?, id_ordre=?, id_article=?, nom_op=?, cin=?, periode_du=?, periode_au=? WHERE id_hist_info=?");
     $stmt->execute([
         $params['shift_travaille'],
         $params['id_op'],
@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $params['id_article'],
         $params['nom_op'],
         $params['cin'],
-        $params['heure_debut'],
-        $params['heure_fin'],
+        $params['periode_du'],
+        $params['periode_au'],
         $id
     ]);
     header('Location: admin_dashboard.php?section=historique&edit=success');
@@ -57,8 +57,8 @@ if (!$row) {
             <div class="col"><label>CIN</label><input class="form-control" name="cin" value="<?php echo htmlspecialchars($row['cin']); ?>" required></div>
         </div>
         <div class="row mb-2">
-            <div class="col"><label>Heure Début</label><input class="form-control" name="heure_debut" value="<?php echo htmlspecialchars($row['heure_debut']); ?>" required></div>
-            <div class="col"><label>Heure Fin</label><input class="form-control" name="heure_fin" value="<?php echo htmlspecialchars($row['heure_fin']); ?>" required></div>
+            <div class="col"><label>Période du</label><input class="form-control" name="periode_du" type="date" value="<?php echo htmlspecialchars($row['periode_du']); ?>" required></div>
+            <div class="col"><label>Période au</label><input class="form-control" name="periode_au" type="date" value="<?php echo htmlspecialchars($row['periode_au']); ?>" required></div>
         </div>
         <button type="submit" class="btn btn-primary">Enregistrer</button>
         <a href="admin_dashboard.php?section=historique" class="btn btn-secondary">Annuler</a>

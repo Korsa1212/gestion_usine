@@ -69,10 +69,75 @@ if (isset($_GET['edit'])) {
 }
 
 // Fetch machines and articles for dropdowns
-$machines = $pdo->query("SELECT id_mach, nom_mach FROM machine WHERE en_fonction = 1")->fetchAll(PDO::FETCH_ASSOC);
-$articles = $pdo->query("SELECT id_article, nom_article FROM article")->fetchAll(PDO::FETCH_ASSOC);
+$baseMachineSql = "SELECT id_mach, nom_mach FROM machine WHERE en_fonction = 1";
 
-$result = $pdo->query("SELECT * FROM fabrication");
+$machines = [];
+
+// 1) Filter when editing (we know the period)
+if ($edit_data) {
+    $periode_du_tmp = $edit_data['periode_du'];
+    $periode_au_tmp = $edit_data['periode_au'];
+    $current_ordre_id = $edit_data['id_ordre'];
+
+    $stmtMach = $pdo->prepare("{$baseMachineSql} AND id_mach NOT IN (
+            SELECT id_mach FROM fabrication
+            WHERE periode_du <= :periode_au
+              AND periode_au >= :periode_du
+              AND id_ordre <> :curr_id)
+            ORDER BY nom_mach");
+    $stmtMach->execute([
+        ':periode_du' => $periode_du_tmp,
+        ':periode_au' => $periode_au_tmp,
+        ':curr_id'    => $current_ordre_id
+    ]);
+    $machines = $stmtMach->fetchAll(PDO::FETCH_ASSOC);
+}
+// 2) Filter after a failed POST (fields re-populate from $_POST)
+elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !$edit_mode) {
+    // If user is adding a new order, period fields are in the POST payload
+    $periode_du_tmp = $periode_du;
+    $periode_au_tmp = $periode_au;
+    if ($periode_du_tmp && $periode_au_tmp) {
+        $stmtMach = $pdo->prepare("{$baseMachineSql} AND id_mach NOT IN (
+                SELECT id_mach FROM fabrication
+                WHERE periode_du <= :periode_au
+                  AND periode_au >= :periode_du)
+                ORDER BY nom_mach");
+        $stmtMach->execute([
+            ':periode_du' => $periode_du_tmp,
+            ':periode_au' => $periode_au_tmp
+        ]);
+        $machines = $stmtMach->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+// 3) Default (no period yet) – show all active machines
+if (!$machines) {
+    $machines = $pdo->query("{$baseMachineSql} ORDER BY nom_mach")->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$articles = $pdo->query("SELECT id_article, nom_article FROM article ORDER BY nom_article")->fetchAll(PDO::FETCH_ASSOC);
+
+// If form is submitted, validate if the selected machine is already in use during the specified period
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($error)) {
+    // Only check for conflicts if all required fields are provided
+    if ($id_ordre !== '' && $periode_du !== '' && $periode_au !== '' && $id_mach !== '') {
+        // Query to check for conflicts - machines already assigned during this period
+        $conflictStmt = $pdo->prepare("SELECT COUNT(*) FROM fabrication 
+            WHERE id_mach = ? 
+            AND periode_du <= ? 
+            AND periode_au >= ? 
+            AND id_ordre != ?");
+        $conflictStmt->execute([$id_mach, $periode_au, $periode_du, $edit_mode ? $old_id_ordre : '']);
+        $hasConflict = $conflictStmt->fetchColumn() > 0;
+        
+        if ($hasConflict) {
+            $error = 'Cette machine est déjà assignée à un autre ordre pendant cette période.';
+        }
+    }
+}
+
+$result = $pdo->query("SELECT f.*, m.nom_mach, a.nom_article FROM fabrication f JOIN machine m ON f.id_mach = m.id_mach JOIN article a ON f.id_article = a.id_article");
 ?>
 <h1 class="mb-4">Gestion des Ordres de Fabrication</h1>
 
@@ -102,11 +167,11 @@ $result = $pdo->query("SELECT * FROM fabrication");
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Période Du</label>
-                    <input type="time" class="form-control" name="periode_du" value="<?= htmlspecialchars($edit_data['periode_du'] ?? '') ?>" required>
+                    <input type="date" class="form-control" name="periode_du" value="<?= htmlspecialchars($edit_data['periode_du'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Période Au</label>
-                    <input type="time" class="form-control" name="periode_au" value="<?= htmlspecialchars($edit_data['periode_au'] ?? '') ?>" required>
+                    <input type="date" class="form-control" name="periode_au" value="<?= htmlspecialchars($edit_data['periode_au'] ?? '') ?>" required>
                 </div>
                 <div class="col-md-3">
     <label class="form-label">Machine</label>
@@ -146,8 +211,8 @@ $result = $pdo->query("SELECT * FROM fabrication");
             <th>ID Ordre</th>
             <th>Période Du</th>
             <th>Période Au</th>
-            <th>ID Machine</th>
-            <th>ID Article</th>
+            <th>Machine</th>
+            <th>Article</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -158,8 +223,8 @@ while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
         <td>".htmlspecialchars($row['id_ordre'])."</td>
         <td>".htmlspecialchars($row['periode_du'])."</td>
         <td>".htmlspecialchars($row['periode_au'])."</td>
-        <td>".htmlspecialchars($row['id_mach'])."</td>
-        <td>".htmlspecialchars($row['id_article'])."</td>
+        <td>".htmlspecialchars($row['nom_mach'])."</td>
+        <td>".htmlspecialchars($row['nom_article'])."</td>
         <td>
             <a href='?section=fabrication&edit=".urlencode($row['id_ordre'])."' class='btn btn-sm btn-warning'>Modifier</a>
             <a href='?section=fabrication&delete=".urlencode($row['id_ordre'])."' class='btn btn-sm btn-danger' onclick=\"return confirm('Supprimer cet ordre ?')\" >Supprimer</a>

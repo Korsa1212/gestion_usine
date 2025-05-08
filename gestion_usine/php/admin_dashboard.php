@@ -172,9 +172,13 @@ if ($section === 'operators') {
             <div class="col-md-6 col-12">
                 <div class="card mt-2">
                     <div class="card-body">
-                        <h5 class="card-title">Nombre d'opérateurs inscrits par date</h5>
-                        <canvas id="operatorsOverTimeChart" height="200"></canvas>
+                        <h5 class="card-title">Opérateurs dans le planning vs Tous les opérateurs</h5>
+                        <canvas id="operatorsChart" height="200"></canvas>
                         <div id="chartjs-operator-error" class="text-danger mt-2" style="display:none;">Erreur: Chart.js n'est pas chargé.</div>
+                        <!-- Chart.js library -->
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <!-- Custom dashboard chart logic -->
+                        <script src="../js/dashboard_charts.js"></script>
                     </div>
                 </div>
             </div>
