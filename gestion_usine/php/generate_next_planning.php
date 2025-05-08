@@ -159,6 +159,8 @@ foreach ($operators as $op) {
             $usedPosts[$key] = true;
             break;
         }
+
+        
     }
     // If can't assign to the rotated shift+machine, assign to any available post (but keep cycle order)
     if (!$chosenPost) {
