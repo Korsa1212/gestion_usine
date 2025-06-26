@@ -358,8 +358,8 @@ foreach ($planningRows as $row) {
 $operators = $pdo->query("SELECT * FROM operateures WHERE actif = 1")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="container mt-4">
-    <h2>Planning Hebdomadaire des Opérateurs</h2>
+<h2 class="text-center mb-4">Planning Hebdomadaire des Opérateurs</h2>
+<div class="container">
 
     <?php if (isset($_GET['success'])): ?>
         <div class="alert alert-success">Le planning de la semaine a été généré avec succès !</div>
@@ -369,7 +369,7 @@ $operators = $pdo->query("SELECT * FROM operateures WHERE actif = 1")->fetchAll(
 
     <?php /* These buttons are already shown at the top of the page */ ?>
 
-    <div class="table-responsive mt-4">
+    <div class="table-responsive">
         <form method="POST">
             <?php if (isset($_GET['edit_all']) && $_GET['edit_all'] == '1'): ?>
                 <input type="hidden" name="save_edit_planning" value="1">
@@ -411,7 +411,7 @@ $operators = $pdo->query("SELECT * FROM operateures WHERE actif = 1")->fetchAll(
                                         }
                                     }
                                     if (!$found) {
-                                        echo '<span class="text-muted">Aucun opérateur</span>';
+                                        echo '<span class="text-muted">-</span>';
                                     }
                                     ?>
                                 </td>

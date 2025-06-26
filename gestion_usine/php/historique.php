@@ -1,6 +1,53 @@
 <?php
 require_once __DIR__ . '/connexion.php';
 
+// Edit functionality
+$editMode = false;
+$rowToEdit = null;
+
+// If edit_id is present, fetch the record for editing
+if (isset($_GET['edit_id']) && is_numeric($_GET['edit_id'])) {
+    $editMode = true;
+    $editId = intval($_GET['edit_id']);
+    $editStmt = $pdo->prepare("SELECT * FROM historique_planing WHERE id_hist_info = ?");
+    $editStmt->execute([$editId]);
+    $rowToEdit = $editStmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$rowToEdit) {
+        $editMode = false;
+        echo "<div class='alert alert-danger'>Record not found.</div>";
+    }
+}
+
+// Handle form submission for edit
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_historique'])) {
+    $fields = ['shift_travaille','id_op','date_action','id_ordre','id_article','nom_op','cin','periode_du','periode_au'];
+    $params = [];
+    $updateId = intval($_POST['id_hist_info']);
+    
+    foreach ($fields as $f) {
+        $params[$f] = $_POST[$f] ?? '';
+    }
+    
+    $stmt = $pdo->prepare("UPDATE historique_planing SET shift_travaille=?, id_op=?, date_action=?, id_ordre=?, id_article=?, nom_op=?, cin=?, periode_du=?, periode_au=? WHERE id_hist_info=?");
+    $stmt->execute([
+        $params['shift_travaille'],
+        $params['id_op'],
+        $params['date_action'],
+        $params['id_ordre'],
+        $params['id_article'],
+        $params['nom_op'],
+        $params['cin'],
+        $params['periode_du'],
+        $params['periode_au'],
+        $updateId
+    ]);
+    
+    // Redirect to remove the edit_id parameter
+    header('Location: admin_dashboard.php?section=historique&edit=success');
+    exit;
+}
+
 // Handle messages
 $successMessage = '';
 if (isset($_GET['delete_all']) && $_GET['delete_all'] === 'success') {
@@ -19,9 +66,9 @@ $cin = array_key_exists('cin', $_GET) ? trim($_GET['cin']) : null;
 $nom_op = array_key_exists('nom_op', $_GET) ? trim($_GET['nom_op']) : null;
 $date_action = array_key_exists('date_action', $_GET) ? trim($_GET['date_action']) : null;
 
-$query = "SELECT h.id_hist_info, h.shift_travaille, h.id_op, h.date_action, h.id_ordre, h.nom_op, h.cin, h.periode_du, h.periode_au, f.id_article
+$query = "SELECT h.id_hist_info, h.shift_travaille, h.id_op, h.date_action, h.id_ordre, h.nom_op, h.cin, h.periode_du, h.periode_au, h.id_article, a.nom_article
 FROM historique_planing h
-LEFT JOIN fabrication f ON h.id_ordre = f.id_ordre
+LEFT JOIN article a ON h.id_article = a.id_article
 WHERE 1=1";
 $params = [];
 if ($cin !== '') {
@@ -93,6 +140,37 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </form>
 </div>
 
+<?php if ($editMode && $rowToEdit): ?>
+<!-- Show only Edit Form when in edit mode -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Éditer l'entrée historique</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="">
+            <input type="hidden" name="id_hist_info" value="<?php echo htmlspecialchars($rowToEdit['id_hist_info']); ?>">
+            <div class="row mb-2">
+                <div class="col"><label>Shift</label><input class="form-control" name="shift_travaille" value="<?php echo htmlspecialchars($rowToEdit['shift_travaille']); ?>" required></div>
+                <div class="col"><label>ID Opérateur</label><input class="form-control" name="id_op" value="<?php echo htmlspecialchars($rowToEdit['id_op']); ?>" required></div>
+                <div class="col"><label>Date</label><input class="form-control" name="date_action" type="date" value="<?php echo htmlspecialchars(substr($rowToEdit['date_action'], 0, 10)); ?>" required></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col"><label>ID Ordre</label><input class="form-control" name="id_ordre" value="<?php echo htmlspecialchars($rowToEdit['id_ordre']); ?>" required></div>
+                <div class="col"><label>ID Article</label><input class="form-control" name="id_article" value="<?php echo htmlspecialchars($rowToEdit['id_article'] ?? ''); ?>" required></div>
+                <div class="col"><label>Nom Opérateur</label><input class="form-control" name="nom_op" value="<?php echo htmlspecialchars($rowToEdit['nom_op']); ?>" required></div>
+                <div class="col"><label>CIN</label><input class="form-control" name="cin" value="<?php echo htmlspecialchars($rowToEdit['cin']); ?>" required></div>
+            </div>
+            <div class="row mb-2">
+                <div class="col"><label>Période du</label><input class="form-control" name="periode_du" type="date" value="<?php echo htmlspecialchars(substr($rowToEdit['periode_du'], 0, 10)); ?>" required></div>
+                <div class="col"><label>Période au</label><input class="form-control" name="periode_au" type="date" value="<?php echo htmlspecialchars(substr($rowToEdit['periode_au'], 0, 10)); ?>" required></div>
+            </div>
+            <button type="submit" name="update_historique" class="btn btn-primary">Enregistrer</button>
+            <a href="admin_dashboard.php?section=historique" class="btn btn-secondary">Annuler</a>
+        </form>
+    </div>
+</div>
+<?php else: ?>
+<!-- Only show the table when not in edit mode -->
     <?php if (empty($rows)): ?>
         <div class="alert alert-info text-center">Aucun historique trouvé.</div>
     <?php else: ?>
@@ -100,15 +178,15 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <table class="table table-bordered table-striped align-middle text-center">
             <thead class="table-dark">
                 <tr>
-                    <th>ID Hist.</th>
+                    
 <th>Shift</th>
-<th>ID Op</th>
+
 <th>Date</th>
 <th>ID Ordre</th>
 <th>Nom Opérateur</th>
 <th>CIN</th>
-<th>Période du</th>
 <th>Période au</th>
+<th>Période du</th>
 <th>ID Article</th>
 <th>Actions</th>
                 </tr>
@@ -116,18 +194,17 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tbody>
                 <?php foreach ($rows as $row): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($row['id_hist_info']); ?></td>
+                       
 <td><?php echo htmlspecialchars($row['shift_travaille']); ?></td>
-<td><?php echo htmlspecialchars($row['id_op']); ?></td>
 <td><?php echo htmlspecialchars($row['date_action']); ?></td>
 <td><?php echo htmlspecialchars($row['id_ordre']); ?></td>
 <td><?php echo htmlspecialchars($row['nom_op']); ?></td>
 <td><?php echo htmlspecialchars($row['cin']); ?></td>
-<td><?php echo htmlspecialchars($row['periode_du']); ?></td>
 <td><?php echo htmlspecialchars($row['periode_au']); ?></td>
-<td><?php echo htmlspecialchars($row['id_article']); ?></td>
+<td><?php echo htmlspecialchars($row['periode_du']); ?></td>
+<td><?php echo htmlspecialchars($row['nom_article'] ?? 'N/A'); ?></td>
 <td>
-    <a href="edit_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-warning">Éditer</a>
+    <a href="admin_dashboard.php?section=historique&edit_id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-warning">Éditer</a>
     <a href="delete_historique.php?id=<?php echo urlencode($row['id_hist_info']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Supprimer cette entrée ?');">Supprimer</a>
 </td>
                     </tr>
@@ -136,6 +213,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </table>
     </div>
     <?php endif; ?>
+<?php endif; ?>
 </div>
 </body>
 </html>
